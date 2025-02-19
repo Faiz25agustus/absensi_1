@@ -34,7 +34,7 @@ packages:
     source: hosted
     version: "2.1.1"
   camera:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: camera
       sha256: "26ff41045772153f222ffffecba711a206f670f5834d40ebf5eed3811692f167"
@@ -90,7 +90,7 @@ packages:
     source: hosted
     version: "1.1.1"
   cloud_firestore:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: cloud_firestore
       sha256: d7204f3263ba3236c037972f1ea2821569bd7b896fa348c3d557e3b76b6dc143
@@ -146,7 +146,7 @@ packages:
     source: hosted
     version: "1.0.8"
   dotted_border:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: dotted_border
       sha256: "108837e11848ca776c53b30bc870086f84b62ed6e01c503ed976e8f8c7df9c04"
@@ -194,7 +194,7 @@ packages:
     source: hosted
     version: "0.9.3+4"
   firebase_auth:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: firebase_auth
       sha256: "2886a01a895565722add556510263231390a9f1d1d51eee34c22f9b94a73dd54"
@@ -218,7 +218,7 @@ packages:
     source: hosted
     version: "5.13.8"
   firebase_core:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: firebase_core
       sha256: "93dc4dd12f9b02c5767f235307f609e61ed9211047132d07f9e02c668f0bfc33"
@@ -281,7 +281,7 @@ packages:
     source: sdk
     version: "0.0.0"
   geocoding:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: geocoding
       sha256: d580c801cba9386b4fac5047c4c785a4e19554f46be42f4f5e5b7deacd088a66
@@ -313,7 +313,7 @@ packages:
     source: hosted
     version: "3.2.0"
   geolocator:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: geolocator
       sha256: d2ec66329cab29cb297d51d96c067d457ca519dca8589665fa0b82ebacb7dbe4
@@ -369,7 +369,7 @@ packages:
     source: hosted
     version: "0.9.0"
   google_mlkit_face_detection:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: google_mlkit_face_detection
       sha256: "65988405c884fd84a4ccc8bded7b5e3e4c33362f6f4eaaa94818bdaaba7bab7d"
@@ -393,7 +393,7 @@ packages:
     source: hosted
     version: "4.0.2"
   image_picker:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: image_picker
       sha256: "021834d9c0c3de46bf0fe40341fa07168407f694d9b2bb18d532dc1261867f7a"
@@ -457,7 +457,7 @@ packages:
     source: hosted
     version: "0.2.1+1"
   intl:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: intl
       sha256: "3df61194eb431efc39c4ceba583b95633a403f46c9fd341e550ce0bfa50e9aa5"
@@ -497,7 +497,7 @@ packages:
     source: hosted
     version: "4.0.0"
   lottie:
-    dependency: "direct main"
+    dependency: "direct dev"
     description:
       name: lottie
       sha256: fa39707f36786707b01eca7626d2c16c32aa603b3f3a146518518458847dc127

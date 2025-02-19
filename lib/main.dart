@@ -7,11 +7,11 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
           // Add your own Firebase project configuration from google-services.json
-          apiKey: 'AIzaSyDMzk9857dkCWrzPHGaxwKDanBV3GofUE4', // api_key
+          apiKey: 'AIzaSyD1jYylSh2rTzFO0DgpbrllxKZ3PhxRcrk', // api_key
           appId:
-              '1:243811762198:android:c141e381bd64f228d07537', // mobilesdk_app_id
+              '1:733162330357:android:93a1d6e4df835854fb8dbc', // mobilesdk_app_id
           messagingSenderId: '243811762198', // project_number
-          projectId: 'idn-boarding-school-solo' // project_id
+          projectId: 'absensi1-42425' // project_id
           ),
     );
     // Firebase connection success

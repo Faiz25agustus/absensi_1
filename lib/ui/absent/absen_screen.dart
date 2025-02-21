@@ -21,7 +21,7 @@ class _AbsentScreenState extends State<AbsentScreen> {
   final controllerName = TextEditingController();
   double dLat = 0.0, dLong = 0.0;
   final CollectionReference dataCollection =
-      FirebaseFirestore.instance.collection('attendance');
+      FirebaseFirestore.instance.collection('absen');
 
   int dateHours = 0, dateMinutes = 0;
   String dropValueCategories = "Please Choose:";

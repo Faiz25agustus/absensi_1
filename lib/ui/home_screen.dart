@@ -1,5 +1,6 @@
 import 'package:attedance_app/ui/absent/absen_screen.dart';
 import 'package:attedance_app/ui/attend/attend_screen.dart';
+import 'package:attedance_app/ui/history/attend_history_screen.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -41,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                     onTap: () {
                       Navigator.push(context, 
                       MaterialPageRoute(builder: 
-                      (context) => AbsentScreen())
+                      (context) => AttendScreen())
                       );
                     },
                     child: const Column(
@@ -93,7 +94,12 @@ class HomeScreen extends StatelessWidget {
                 ),
                 Expanded(
                   child: InkWell(
-                
+                    onTap: () {
+                       Navigator.push(context, 
+                      MaterialPageRoute(builder: 
+                      (context) => AttendanceHistoryScreen())
+                      );
+                    },
                     child: const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -104,6 +110,33 @@ class HomeScreen extends StatelessWidget {
                         ),
                         Text(
                           "Attendance History",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                        Navigator.push(context, 
+                      MaterialPageRoute(builder: 
+                      (context) => AttendScreen())
+                      );
+                    },
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.school,
+                          size: 100,
+                          color: Colors.blueAccent,
+                        ),
+                        Text(
+                          "Pendaftaran Jurusan",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,

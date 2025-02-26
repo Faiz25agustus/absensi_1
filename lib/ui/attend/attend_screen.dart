@@ -1,246 +1,498 @@
-import 'package:flutter/material.dart';
+import 'dart:io'; // Provides access to file and directory operations for working with the filesystem.
+import 'package:attedance_app/ui/attend/Camera_screen.dart';
+import 'package:camera/camera.dart'; // Allows access to the device camera for capturing photos or videos.
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dotted_border/dotted_border.dart'; // Provides a widget to create a dotted or dashed border around elements.
+import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart'; // Converts coordinates into addresses.
+import 'package:geolocator/geolocator.dart'; // Handles retrieving the device’s current location and managing GPS permissions.
+import 'package:intl/intl.dart'; // Used for formatting dates, numbers, and localization support.
+import 'package:attedance_app/ui/attend/attend_screen.dart';
+import 'package:attedance_app/ui/home_screen.dart';
+class AttendScreen extends StatefulWidget {
+  final XFile? image;
 
-void main() {
-  runApp(MyApp());
+  const AttendScreen({super.key, this.image});
+
+  @override
+  State<AttendScreen> createState() => _AttendScreenState(image);
 }
 
-class MyApp extends StatelessWidget {
+class _AttendScreenState extends State<AttendScreen> {
+  _AttendScreenState(this.image);
+
+  XFile? image;
+  String strAlamat = "",
+      strDate = "",
+      strTime = "",
+      strDateTime = "",
+      strStatus = "Attend";
+  bool isLoading = false;
+  double dLat = 0.0, dLong = 0.0;
+  int dateHours = 0, dateMinutes = 0;
+  final controllerName = TextEditingController();
+  final CollectionReference dataCollection =
+      FirebaseFirestore.instance.collection('attendance');
+
+  @override
+  void initState() {
+    handleLocationPermission();
+    setDateTime();
+    setStatusAbsen();
+
+    if (image != null) {
+      isLoading = true;
+      getGeoLocationPosition();
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pendaftaran Mahasiswa',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: AttendScreen(),
+    Size size = MediaQuery.of(context).size;
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color.fromARGB(255, 26, 0, 143),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        centerTitle: true,
+        title: const Text(
+          "Attendance Menu",
+          style: TextStyle(
+              fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ),
+      body: SingleChildScrollView(
+        child: Card(
+            color: Colors.white,
+            margin: const EdgeInsets.fromLTRB(10, 10, 10, 30),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 50,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10)),
+                    color: Colors.blueAccent,
+                  ),
+                  child: const Row(
+                    children: [
+                      SizedBox(
+                        width: 12,
+                      ),
+                      Icon(Icons.face_retouching_natural_outlined,
+                          color: Colors.white),
+                      SizedBox(
+                        width: 12,
+                      ),
+                      Text(
+                        "Please make a selfie photo!",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 20, 0, 20),
+                  child: Text(
+                    "Capture Photo",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const CameraScreen()));
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                    width: size.width,
+                    height: 150,
+                    child: DottedBorder(
+                      radius: const Radius.circular(10),
+                      borderType: BorderType.RRect,
+                      color: Colors.blueAccent,
+                      strokeWidth: 1,
+                      dashPattern: const [5, 5],
+                      child: SizedBox.expand(
+                        child: FittedBox(
+                          child: image != null
+                              ? Image.file(File(image!.path), fit: BoxFit.cover)
+                              : const Icon(
+                                  Icons.camera_enhance_outlined,
+                                  color: Colors.blueAccent,
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: TextField(
+                    textInputAction: TextInputAction.done,
+                    keyboardType: TextInputType.text,
+                    controller: controllerName,
+                    decoration: InputDecoration(
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10),
+                      labelText: "Your Name",
+                      hintText: "Please enter your name",
+                      hintStyle:
+                          const TextStyle(fontSize: 14, color: Colors.grey),
+                      labelStyle:
+                          const TextStyle(fontSize: 14, color: Colors.black),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.blueAccent),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.blueAccent),
+                      ),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                  child: Text(
+                    "Your Location",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                ),
+                isLoading
+                    ? const Center(
+                        child:
+                            CircularProgressIndicator(color: Colors.blueAccent))
+                    : Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: SizedBox(
+                          height: 5 * 24,
+                          child: TextField(
+                            enabled: false,
+                            maxLines: 5,
+                            decoration: InputDecoration(
+                              alignLabelWithHint: true,
+                              disabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                borderSide:
+                                    const BorderSide(color: Colors.blueAccent),
+                              ),
+                              hintText: strAlamat,
+                              hintStyle: const TextStyle(
+                                  fontSize: 14, color: Colors.grey),
+                              fillColor: Colors.transparent,
+                              filled: true,
+                            ),
+                          ),
+                        ),
+                      ),
+                Container(
+                    alignment: Alignment.center,
+                    margin: const EdgeInsets.all(30),
+                    child: Material(
+                      elevation: 3,
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: size.width,
+                        height: 50,
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white),
+                        child: Material(
+                          borderRadius: BorderRadius.circular(20),
+                          color: Colors.blueAccent,
+                          child: InkWell(
+                            splashColor: Colors.blue,
+                            borderRadius: BorderRadius.circular(20),
+                            onTap: () {
+                              if (image == null ||
+                                  controllerName.text.isEmpty) {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(const SnackBar(
+                                  content: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.info_outline,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 10),
+                                      Text("Please Fill all the forms!",
+                                          style: TextStyle(color: Colors.white))
+                                    ],
+                                  ),
+                                  backgroundColor: Colors.blueGrey,
+                                  shape: StadiumBorder(),
+                                  behavior: SnackBarBehavior.floating,
+                                ));
+                              } else {
+                                submitAbsen(strAlamat,
+                                    controllerName.text.toString(), strStatus);
+                              }
+                            },
+                            child: const Center(
+                              child: Text(
+                                "Report Now",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )),
+              ],
+            )),
+      ),
     );
   }
-}
 
-class AttendScreen extends StatefulWidget {
-  @override
-  _StudentRegistrationState createState() => _StudentRegistrationState();
-}
-
-class _StudentRegistrationState extends State<AttendScreen> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController nimController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  String? selectedJurusan;
-  String? selectedGender;
-  DateTime? selectedDate;
-
-  bool isLoading = false;
-  final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-  void showSnackbar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
-  }
-
-  void registerStudent() async {
-    if (nameController.text.isEmpty ||
-        nimController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        phoneController.text.isEmpty ||
-        addressController.text.isEmpty ||
-        selectedJurusan == null ||
-        selectedGender == null ||
-        selectedDate == null) {
-      showSnackbar('Harap isi semua kolom!', Colors.orange);
-      return;
-    }
-
-    setState(() => isLoading = true);
-    try {
-      await firestore.collection('students').add({
-        'name': nameController.text,
-        'nim': nimController.text,
-        'jurusan': selectedJurusan,
-        'email': emailController.text,
-        'phone': phoneController.text,
-        'address': addressController.text,
-        'gender': selectedGender,
-        'birthdate': selectedDate!.toIso8601String(),
-      });
-      showSnackbar('Pendaftaran berhasil!', Colors.green);
-      clearFields();
-    } catch (e) {
-      showSnackbar('Pendaftaran gagal!', Colors.red);
-    }
-    setState(() => isLoading = false);
-  }
-
-  void clearFields() {
+  //get realtime location
+  Future<void> getGeoLocationPosition() async {
+    // ignore: deprecated_member_use
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.low);
     setState(() {
-      nameController.clear();
-      nimController.clear();
-      emailController.clear();
-      phoneController.clear();
-      addressController.clear();
-      selectedJurusan = null;
-      selectedGender = null;
-      selectedDate = null;
+      isLoading = false;
+      getAddressFromLongLat(position);
     });
   }
 
-  void pickDate() async {
-    DateTime? pickedDate = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(1950),
-      lastDate: DateTime.now(),
-    );
+  //get address by lat long
+  Future<void> getAddressFromLongLat(Position position) async {
+    List<Placemark> placemarks =
+        await placemarkFromCoordinates(position.latitude, position.longitude);
+    print(placemarks);
+    Placemark place = placemarks[0];
+    setState(() {
+      dLat = double.parse('${position.latitude}');
+      dLat = double.parse('${position.longitude}');
+      strAlamat =
+          "${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}";
+    });
+  }
 
-    if (pickedDate != null) {
-      setState(() => selectedDate = pickedDate);
+  //permission location
+  Future<bool> handleLocationPermission() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.location_off,
+              color: Colors.white,
+            ),
+            SizedBox(width: 10),
+            Text(
+              "Location services are disabled. Please enable the services.",
+              style: TextStyle(color: Colors.white),
+            )
+          ],
+        ),
+        backgroundColor: Colors.blueGrey,
+        shape: StadiumBorder(),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Row(
+            children: [
+              Icon(
+                Icons.location_off,
+                color: Colors.white,
+              ),
+              SizedBox(width: 10),
+              Text(
+                "Location permission denied.",
+                style: TextStyle(color: Colors.white),
+              )
+            ],
+          ),
+          backgroundColor: Colors.blueGrey,
+          shape: StadiumBorder(),
+          behavior: SnackBarBehavior.floating,
+        ));
+        return false;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.location_off,
+              color: Colors.white,
+            ),
+            SizedBox(width: 10),
+            Text(
+              "Location permission denied forever, we cannot access.",
+              style: TextStyle(color: Colors.white),
+            )
+          ],
+        ),
+        backgroundColor: Colors.blueGrey,
+        shape: StadiumBorder(),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return false;
+    }
+    return true;
+  }
+
+  //show progress dialog
+  showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blueGrey)),
+          Container(
+            margin: const EdgeInsets.only(left: 20),
+            child: const Text("Checking the data..."),
+          ),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  //check format date time
+  void setDateTime() async {
+    var dateNow = DateTime.now();
+    var dateFormat = DateFormat('dd MMMM yyyy');
+    var dateTime = DateFormat('HH:mm:ss');
+    var dateHour = DateFormat('HH');
+    var dateMinute = DateFormat('mm');
+
+    setState(() {
+      strDate = dateFormat.format(dateNow);
+      strTime = dateTime.format(dateNow);
+      strDateTime = "$strDate | $strTime";
+
+      dateHours = int.parse(dateHour.format(dateNow));
+      dateMinutes = int.parse(dateMinute.format(dateNow));
+    });
+  }
+
+  //check status absent
+  void setStatusAbsen() {
+    if (dateHours < 8 || (dateHours == 8 && dateMinutes <= 30)) {
+      strStatus = "Attend";
+    } else if ((dateHours > 8 && dateHours < 18) ||
+        (dateHours == 8 && dateMinutes >= 31)) {
+      strStatus = "Late";
+    } else {
+      strStatus = "Leave";
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Pendaftaran Mahasiswa'),
-        centerTitle: true,
-        leading: Icon(Icons.school),
-      ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: InputDecoration(
-                labelText: 'Nama',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: nimController,
-              decoration: InputDecoration(
-                labelText: 'NIM',
-                prefixIcon: Icon(Icons.credit_card),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: selectedJurusan,
-              hint: Text('Pilih Jurusan'),
-              items: [
-                'Informatika',
-                'Sistem Informasi',
-                'Teknik Elektro',
-                'Teknik Mesin',
-                'Psikologi',
-              ]
-                  .map((jurusan) =>
-                      DropdownMenuItem(value: jurusan, child: Text(jurusan)))
-                  .toList(),
-              onChanged: (value) => setState(() => selectedJurusan = value),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.school),
-              ),
-            ),
-            SizedBox(height: 16),
-            TextField(
-              controller: emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // **Nomor Telepon**
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              decoration: InputDecoration(
-                labelText: 'Nomor Telepon',
-                prefixIcon: Icon(Icons.phone),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // **Alamat Lengkap**
-            TextField(
-              controller: addressController,
-              decoration: InputDecoration(
-                labelText: 'Alamat Lengkap',
-                prefixIcon: Icon(Icons.home),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // **Tanggal Lahir**
-            InkWell(
-              onTap: pickDate,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: 'Tanggal Lahir',
-                  prefixIcon: Icon(Icons.calendar_today),
-                  border: OutlineInputBorder(),
-                ),
-                child: Text(
-                  selectedDate == null
-                      ? 'Pilih Tanggal'
-                      : '${selectedDate!.day}-${selectedDate!.month}-${selectedDate!.year}',
-                ),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            // **Jenis Kelamin**
-            DropdownButtonFormField<String>(
-              value: selectedGender,
-              hint: Text('Pilih Jenis Kelamin'),
-              items: ['Laki-laki', 'Perempuan']
-                  .map((gender) =>
-                      DropdownMenuItem(value: gender, child: Text(gender)))
-                  .toList(),
-              onChanged: (value) => setState(() => selectedGender = value),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.person_outline),
-              ),
-            ),
-            SizedBox(height: 16),
-
-            if (isLoading) Center(child: CircularProgressIndicator()),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //submit data absent to firebase
+  Future<void> submitAbsen(String alamat, String nama, String status) async {
+    showLoaderDialog(context);
+    dataCollection.add({
+      'address': alamat,
+      'name': nama,
+      'description': status,
+      'datetime': strDateTime
+    }).then((result) {
+      setState(() {
+        Navigator.of(context).pop();
+        try {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Row(
               children: [
-                ElevatedButton(
-                  onPressed: registerStudent,
-                  style: ElevatedButton.styleFrom(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-                  child: Text('Daftar', style: TextStyle(fontSize: 16)),
+                Icon(
+                  Icons.check_circle_outline,
+                  color: Colors.white,
                 ),
-                ElevatedButton(
-                  onPressed: clearFields,
-                  style: ElevatedButton.styleFrom(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 32, vertical: 16)),
-                  child: Text('Hapus Form', style: TextStyle(fontSize: 16)),
+                SizedBox(width: 10),
+                Text("Yeay! Attendance Report Succeeded!",
+                    style: TextStyle(color: Colors.white))
+              ],
+            ),
+            backgroundColor: Colors.orangeAccent,
+            shape: StadiumBorder(),
+            behavior: SnackBarBehavior.floating,
+          ));
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()));
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Row(
+              children: [
+                const Icon(
+                  Icons.info_outline,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text("Ups, $e",
+                      style: const TextStyle(color: Colors.white)),
                 ),
               ],
             ),
+            backgroundColor: Colors.blueGrey,
+            shape: const StadiumBorder(),
+            behavior: SnackBarBehavior.floating,
+          ));
+        }
+      });
+    }).catchError((error) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+                child: Text("Ups, $error",
+                    style: const TextStyle(color: Colors.white)))
           ],
         ),
-      ),
-    );
+        backgroundColor: Colors.blueGrey,
+        shape: const StadiumBorder(),
+        behavior: SnackBarBehavior.floating,
+      ));
+      Navigator.of(context).pop();
+    });
   }
 }

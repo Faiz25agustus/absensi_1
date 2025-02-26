@@ -1,6 +1,8 @@
 import 'package:attedance_app/ui/absent/absen_screen.dart';
 import 'package:attedance_app/ui/attend/attend_screen.dart';
 import 'package:attedance_app/ui/history/attend_history_screen.dart';
+import 'package:attedance_app/ui/history/student_history.dart';
+import 'package:attedance_app/ui/history/student_history.dart';
 import 'package:flutter/material.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -137,6 +139,33 @@ class HomeScreen extends StatelessWidget {
                         ),
                         Text(
                           "Pendaftaran Jurusan",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: InkWell(
+                    onTap: () {
+                        Navigator.push(context, 
+                      MaterialPageRoute(builder: 
+                      (context) => StudentHistoryScreen())
+                      );
+                    },
+                    child: const Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.history,
+                          size: 100,
+                          color: Colors.blueAccent,
+                        ),
+                        Text(
+                          "History Mahasiswa",
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
